@@ -51,7 +51,7 @@
 - **ダミーデータ**です。本番ヘルプデスク運用には使わないでください  
 - **認証なし**です。到達できる人は操作できます（本番では SSO 等を前提）  
 - ブックマークだけではサーバは動きません。**プロセスの起動が必要**です  
-- 問い合わせ送信は `data/inquiries.json` への追記のみ（外部通知なし）  
+- 問い合わせ送信は `data/inquiries.json` への追記のみ（外部通知なし。Git には載せず、実 PII 混入を防止）  
 - AI 利用時は事例テキストが API に送られます。本 PoC はダミーのみ送信  
 
 ---
@@ -128,8 +128,9 @@ IT_Dep_Inquires/
 │   ├── static/
 │   └── templates/
 ├── data/
-│   ├── cases.json        # ダミー事例 + 情シス連絡先
-│   └── inquiries.json    # フォーム送信の保存先
+│   ├── cases.json               # ダミー事例 + 情シス連絡先
+│   ├── inquiries.json.example   # 保存先の初期形（[]）
+│   └── inquiries.json           # フォーム送信の保存先（gitignore・ローカルのみ）
 ├── docs/
 │   └── screenshots/      # README 用画面キャプチャ
 ├── open_console.py
@@ -143,6 +144,7 @@ IT_Dep_Inquires/
 ## データと AI 利用について
 
 - 公開リポジトリには **架空データのみ** を置いています  
+- フォーム送信先 `data/inquiries.json` は **gitignore** です。初回は `copy data\inquiries.json.example data\inquiries.json`（無くてもアプリが空配列で作成します）  
 - AI に渡す内容は事例カタログ上の要約フィールドに限定（実装上もダミー）  
 - 本番利用を検討する場合の論点例:
   - 実チケットを LLM に送る前のマスキング / 社内ポリシー確認  

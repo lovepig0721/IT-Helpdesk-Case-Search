@@ -12,5 +12,5 @@ Thumbs.db
 *.egg-info/
 dist/
 build/
-# Local inquiry submissions may contain demo personal fields — keep out of git if preferred
-# data/inquiries.json
+# Local inquiry submissions may contain personal fields — do not commit
+data/inquiries.json

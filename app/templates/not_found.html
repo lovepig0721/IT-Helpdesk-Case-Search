@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}見つかりません | Help Desk Portal{% endblock %}
+
+{% block content %}
+<div class="empty">
+  <h1>事例が見つかりません</h1>
+  <p class="muted">ID: {{ case_id }}</p>
+  <a class="btn btn-primary" href="/">一覧へ戻る</a>
+</div>
+{% endblock %}

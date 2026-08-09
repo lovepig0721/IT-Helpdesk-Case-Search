@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}{{ case.title }} | Help Desk Portal{% endblock %}
+
+{% block content %}
+<p class="breadcrumb">
+  <a href="/">事例一覧</a>
+  <span aria-hidden="true">/</span>
+  <span>{{ case.id }}</span>
+</p>
+
+<article class="detail">
+  <header class="detail-header">
+    <div class="card-top">
+      <span class="cat-chip cat-{{ case.category }}">{{ case.category_label }}</span>
+      <span class="prio prio-{{ case.priority }}">優先度 {{ case.priority_label }}</span>
+    </div>
+    <h1>{{ case.title }}</h1>
+    <p class="meta-line muted">
+      {{ case.id }} · 更新 {{ case.updated_at }}
+      {% if case.related_tags %}
+      ·
+      {% for t in case.related_tags %}
+      <span class="tag">{{ t }}</span>
+      {% endfor %}
+      {% endif %}
+    </p>
+  </header>
+
+  <section class="detail-block">
+    <h2>症状</h2>
+    <p>{{ case.symptom }}</p>
+  </section>
+
+  <section class="detail-block">
+    <h2>想定環境</h2>
+    <p>{{ case.environment }}</p>
+  </section>
+
+  <section class="detail-block steps-block">
+    <h2>対応手順（まず試すこと）</h2>
+    <ol class="steps">
+      {% for s in case.steps %}
+      <li>{{ s }}</li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <section class="detail-block unresolved-block" id="if-unresolved">
+    <h2>それでも解決しない場合</h2>
+    <p class="unresolved-lead">
+      上記を試しても改善しないときは、次を準備して情シスへ連絡してください。
+    </p>
+    <ul class="unresolved-list">
+      {% for s in case.if_unresolved %}
+      <li>{{ s }}</li>
+      {% endfor %}
+    </ul>
+    <div class="unresolved-actions">
+      <a class="btn btn-primary" href="/inquiry?ref={{ case.id }}">この事例を参照して問い合わせ</a>
+      <a class="btn btn-soft" href="/#contact">連絡先を見る</a>
+    </div>
+    <div class="mini-contact">
+      <strong>{{ contact.team_name }}</strong>
+      <span>{{ contact.phone }}</span>
+      <span>{{ contact.email }}</span>
+      <span>{{ contact.chat }}</span>
+      <p class="small muted">{{ contact.escalation_note }}</p>
+    </div>
+  </section>
+
+  <section class="detail-block">
+    <h2>よくある決着</h2>
+    <p>{{ case.resolution_summary }}</p>
+  </section>
+
+  {% if case.keywords %}
+  <section class="detail-block">
+    <h2>関連キーワード</h2>
+    <p class="tags">
+      {% for k in case.keywords %}
+      <a class="tag" href="/?q={{ k|urlencode }}">{{ k }}</a>
+      {% endfor %}
+    </p>
+  </section>
+  {% endif %}
+</article>
+
+{% if related %}
+<section class="related">
+  <h2>同じカテゴリの事例</h2>
+  <div class="card-grid compact">
+    {% for c in related %}
+    <article class="case-card">
+      <h3><a href="/cases/{{ c.id }}">{{ c.title }}</a></h3>
+      <p class="symptom">{{ c.symptom }}</p>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

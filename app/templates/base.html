@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}社内ヘルプデスク 過去事例検索{% endblock %}</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💼</text></svg>" />
+</head>
+<body>
+  <div class="banner">
+    PoC / ダミーデータのみ — 社内ポータル設置イメージ（認証なし・本番利用不可）
+  </div>
+
+  <header class="topbar">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">HD</span>
+      <span class="brand-text">
+        <strong>Help Desk Portal</strong>
+        <span>過去事例検索 · 社内専用 PoC</span>
+      </span>
+    </a>
+    <nav class="nav">
+      <a href="/" class="{% if request.url.path == '/' %}active{% endif %}">事例を探す</a>
+      <a href="/inquiry" class="{% if request.url.path.startswith('/inquiry') %}active{% endif %}">問い合わせ</a>
+    </nav>
+    <div class="badge-row">
+      {% if ai_ready %}
+      <span class="pill ok">AI意味検索 ON</span>
+      {% else %}
+      <span class="pill">AIオフライン（あいまい検索）</span>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <strong>{{ contact.team_name }}</strong>
+        <p class="muted small">{{ meta.note }}</p>
+      </div>
+      <div class="footer-contact muted small">
+        <div>{{ contact.hours }}</div>
+        <div>{{ contact.phone }} · {{ contact.email }}</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

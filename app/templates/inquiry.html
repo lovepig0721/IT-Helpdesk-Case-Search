@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}問い合わせ | Help Desk Portal{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <h1>問い合わせフォーム</h1>
+  <p class="lede">
+    優先度・カテゴリ・端末情報を構造化して起票します。
+    本番では Salesforce 等へ連携する想定ですが、本 PoC ではローカル JSON に保存するだけです。
+  </p>
+</section>
+
+{% if submitted %}
+<div class="success-panel">
+  <h2>受け付けました（PoC）</h2>
+  <p>チケット ID: <strong>{{ ticket.ticket_id }}</strong></p>
+  <p class="muted">{{ ticket.note }}</p>
+  <div class="unresolved-actions">
+    <a class="btn btn-primary" href="/">事例一覧へ</a>
+    <a class="btn btn-soft" href="/inquiry">続けて起票</a>
+  </div>
+  <div class="mini-contact" style="margin-top:1rem">
+    <strong>急ぎの場合</strong>
+    <span>{{ contact.phone }}</span>
+    <span>{{ contact.chat }}</span>
+  </div>
+</div>
+{% else %}
+
+<div class="contact-strip">
+  <strong>情シス連絡先（ダミー）</strong>
+  <span>{{ contact.phone }}</span>
+  <span>{{ contact.email }}</span>
+  <span>{{ contact.hours }}</span>
+</div>
+
+<form class="inquiry-form" method="post" action="/inquiry">
+  <input type="hidden" name="ref_case" value="{{ ref }}" />
+
+  {% if ref %}
+  <p class="ref-banner">参照事例: <a href="/cases/{{ ref }}">{{ ref }}</a></p>
+  {% endif %}
+
+  <div class="form-grid">
+    <label>
+      お名前
+      <input name="name" type="text" placeholder="山田 花子" required />
+    </label>
+    <label>
+      部署
+      <input name="dept" type="text" placeholder="営業部" />
+    </label>
+    <label class="full">
+      連絡用メール
+      <input name="email" type="email" placeholder="hanako@example-company.local" required />
+    </label>
+    <label>
+      カテゴリ
+      <select name="category" required>
+        {% for cat in categories if cat.id != 'all' %}
+        <option value="{{ cat.id }}">{{ cat.label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      優先度
+      <select name="priority" required>
+        {% for val, label in priorities %}
+        <option value="{{ val }}" {% if val == 'medium' %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      端末種別
+      <select name="device" required>
+        {% for val, label in devices %}
+        <option value="{{ val }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      端末・資産のメモ
+      <input name="device_detail" type="text" placeholder="例: PC-1234 / 3F複合機" />
+    </label>
+    <label class="full">
+      件名
+      <input name="subject" type="text" placeholder="例: 会議室Wi‑Fiに接続できない" required />
+    </label>
+    <label class="full">
+      詳細（いつから / 何をしているとき / エラー文 など）
+      <textarea name="body" rows="6" placeholder="再現手順や、すでに試したことを書いてください。" required></textarea>
+    </label>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">送信（ローカル保存）</button>
+    <a class="btn btn-ghost" href="/">キャンセル</a>
+  </div>
+  <p class="muted small">個人情報はデモ用です。GitHub 公開時も実在の社員データを入れないでください。</p>
+</form>
+
+<section class="escalation-banner">
+  <h2>それでも解決しない・緊急のとき</h2>
+  <p>フォーム送信後も業務が止まっている場合は、電話またはチャットを優先してください。</p>
+  <ul>
+    <li>電話: {{ contact.phone }}</li>
+    <li>チャット: {{ contact.chat }}</li>
+    <li>窓口: {{ contact.location }}</li>
+  </ul>
+  <p class="small muted">{{ contact.escalation_note }}</p>
+</section>
+{% endif %}
+{% endblock %}

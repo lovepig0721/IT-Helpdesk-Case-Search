@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}事例検索 | Help Desk Portal{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow">社内ポータル · ブックマークからすぐアクセス</p>
+    <h1>困りごとを、過去の解決事例から探す</h1>
+    <p class="lede">
+      自然な言葉であいまい検索できます。カテゴリ（PC・プリンタ・ネットワークなど）でも絞り込めます。
+      解決手順を試しても直らないときは、各事例の「それでも解決しない場合」と下の情シス連絡先をご利用ください。
+    </p>
+  </div>
+  <aside class="contact-card" id="contact">
+    <h2>情報システム部 連絡先</h2>
+    <p class="contact-team">{{ contact.team_name }}</p>
+    <dl class="contact-dl">
+      <div><dt>受付</dt><dd>{{ contact.hours }}</dd></div>
+      <div><dt>電話</dt><dd>{{ contact.phone }}</dd></div>
+      <div><dt>メール</dt><dd>{{ contact.email }}</dd></div>
+      <div><dt>チャット</dt><dd>{{ contact.chat }}</dd></div>
+      <div><dt>窓口</dt><dd>{{ contact.location }}</dd></div>
+    </dl>
+    <p class="contact-note">{{ contact.escalation_note }}</p>
+    <a class="btn btn-primary btn-block" href="/inquiry">新規問い合わせを作成</a>
+  </aside>
+</section>
+
+<section class="search-panel">
+  <form class="search-form" method="get" action="/" role="search">
+    <label class="sr-only" for="q">キーワード検索</label>
+    <input
+      id="q"
+      name="q"
+      type="search"
+      value="{{ q }}"
+      placeholder="例: 印刷が薄い、Wi‑Fiにつながらない、パスワードを忘れた…"
+      autocomplete="off"
+    />
+    <input type="hidden" name="category" value="{{ category }}" />
+    <div class="search-actions">
+      <label class="sort-label">
+        並び替え
+        <select name="sort">
+          <option value="relevance" {% if sort == 'relevance' %}selected{% endif %}>関連度</option>
+          <option value="priority" {% if sort == 'priority' %}selected{% endif %}>優先度</option>
+          <option value="updated" {% if sort == 'updated' %}selected{% endif %}>更新日</option>
+          <option value="title" {% if sort == 'title' %}selected{% endif %}>タイトル</option>
+        </select>
+      </label>
+      <button type="submit" class="btn btn-primary">あいまい検索</button>
+      <button type="submit" name="semantic" value="1" class="btn btn-soft" title="APIキーがある場合はAI意味検索">
+        AI意味検索
+      </button>
+    </div>
+  </form>
+  <p class="search-hint muted small">
+    表記ゆれ（Wi‑Fi / wifi など）も拾う簡易あいまい検索です。
+    AI意味検索は <code>XAI_API_KEY</code> 設定時に自然文の類似判定を行います（未設定時はオフライン順位付け）。
+  </p>
+</section>
+
+{% if semantic_result %}
+<section class="semantic-box">
+  <div class="semantic-head">
+    <h2>AI / 類似事例ランキング</h2>
+    <span class="pill">{{ semantic_result.note }} · source: {{ semantic_result.source }}</span>
+  </div>
+  {% if semantic_result.hint %}
+  <p class="muted">{{ semantic_result.hint }}</p>
+  {% endif %}
+  {% if semantic_result.error %}
+  <p class="warn-text">{{ semantic_result.error }}</p>
+  {% endif %}
+  {% if semantic_result.matches %}
+  <ol class="semantic-list">
+    {% for m in semantic_result.matches %}
+    <li>
+      <a href="/cases/{{ m.id }}"><strong>{{ m.title }}</strong></a>
+      <span class="meta-line">
+        {{ m.category_label }} · 優先度 {{ m.priority_label }}
+        {% if m.confidence %}· 信頼度 {{ (m.confidence * 100)|round|int }}%{% endif %}
+      </span>
+      {% if m.reason %}<span class="reason">{{ m.reason }}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <p>類似事例が見つかりませんでした。カテゴリ一覧から探すか、問い合わせフォームへどうぞ。</p>
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="tabs-wrap" aria-label="カテゴリ">
+  <div class="tabs" role="tablist">
+    {% for cat in categories %}
+    <a
+      class="tab {% if category == cat.id %}active{% endif %}"
+      href="/?q={{ q|urlencode }}&category={{ cat.id }}&sort={{ sort }}"
+      role="tab"
+      aria-selected="{{ 'true' if category == cat.id else 'false' }}"
+    >
+      <span class="tab-icon">{{ cat.icon }}</span>
+      {{ cat.label }}
+      <span class="tab-count">{{ counts.get(cat.id, 0) }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="results-head">
+  <h2>事例一覧</h2>
+  <p class="muted">{{ stats.shown }} 件表示 / 全 {{ stats.total }} 件（ダミー）</p>
+</section>
+
+{% if cases %}
+<div class="card-grid">
+  {% for c in cases %}
+  <article class="case-card">
+    <div class="card-top">
+      <span class="cat-chip cat-{{ c.category }}">{{ c.category_label }}</span>
+      <span class="prio prio-{{ c.priority }}">優先度 {{ c.priority_label }}</span>
+    </div>
+    <h3><a href="/cases/{{ c.id }}">{{ c.title }}</a></h3>
+    <p class="symptom">{{ c.symptom }}</p>
+    <div class="card-foot">
+      <span class="muted small">{{ c.id }} · 更新 {{ c.updated_at }}</span>
+      <a class="link-more" href="/cases/{{ c.id }}">手順を見る →</a>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <p>条件に一致する事例がありません。</p>
+  <p class="muted">キーワードを変えるか、<a href="/inquiry">新規問い合わせ</a>をご利用ください。</p>
+</div>
+{% endif %}
+
+<section class="escalation-banner">
+  <h2>それでも解決しない場合</h2>
+  <ol>
+    <li>各事例詳細の「それでも解決しない場合」に沿って、資産番号・エラー表示・影響範囲をメモする</li>
+    <li><a href="/inquiry">問い合わせフォーム</a>から優先度・カテゴリ・端末情報を書いて起票する（PoCではローカル保存のみ）</li>
+    <li>業務停止級は <strong>{{ contact.phone }}</strong> または <strong>{{ contact.chat }}</strong> を優先</li>
+  </ol>
+  <p class="muted small">本番では Salesforce 等のチケット基盤へ連携する想定です。本 PoC は職務経歴・デモ用の最小構成です。</p>
+</section>
+{% endblock %}
